@@ -1,6 +1,7 @@
 mod commands;
+mod config;
 
-use serde::Deserialize;
+use hotwatch::Hotwatch;
 use serenity::{
     async_trait,
     model::{
@@ -9,17 +10,13 @@ use serenity::{
     },
     prelude::*,
 };
-use std::{collections::HashMap, fs::File, io::Read, sync::Arc};
+use std::{collections::HashMap, path::Path, sync::Arc};
+use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
 use crate::commands::interaction_handler::{register_guild_interaction_handler, InteractionMap};
 use crate::commands::ping::Ping;
-
-#[derive(Deserialize)]
-struct Config {
-    application_id: u64,
-    discord_token: String,
-}
+use crate::config::Config;
 
 struct Handler;
 
@@ -78,14 +75,8 @@ impl EventHandler for Handler {
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let mut config_file = File::open("config.toml").expect("Error opening config.toml");
-    let mut config_str = String::new();
-    config_file
-        .read_to_string(&mut config_str)
-        .expect("Error reading config.toml");
-    let config: Config = toml::from_str(&config_str).expect("Erorr parsing config.toml");
-
-    let token = config.discord_token;
+    let config = Config::read_from(Path::new("config.toml")).expect("Could not open config.toml");
+    let token = config.discord_token.clone();
     let application_id: u64 = config.application_id;
 
     let mut client = Client::builder(token)
@@ -93,6 +84,32 @@ async fn main() {
         .application_id(application_id)
         .await
         .expect("Error creating client");
+    let data = client.data.clone();
+
+    data.write()
+        .await
+        .insert::<Config>(Arc::new(RwLock::new(config)));
+
+    let handle = Handle::current();
+    let mut hotwatch = Hotwatch::new().expect("Hotwatch failed to initialize!");
+    hotwatch
+        .watch("config.toml", move |event| {
+            if let hotwatch::Event::Write(_) = event {
+                if let Some(config) = Config::read_from(Path::new("config.toml")) {
+                    info!("Config changed!");
+                    for game in &config.games {
+                        info!("{}", game.name);
+                    }
+
+                    handle.block_on(async {
+                        data.write()
+                            .await
+                            .insert::<Config>(Arc::new(RwLock::new(config)));
+                    });
+                }
+            }
+        })
+        .expect("Failed to watch config.toml");
 
     if let Err(why) = client.start().await {
         println!("Client error: {:?}", why);

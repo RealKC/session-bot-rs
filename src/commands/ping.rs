@@ -1,4 +1,6 @@
-use super::interaction_handler::InteractionHandler;
+use crate::config::ContextExt;
+
+use super::interaction_handler::{Command, InteractionHandler};
 use serenity::{
     async_trait,
     client::Context,
@@ -17,11 +19,12 @@ impl InteractionHandler for Ping {
 
     async fn invoke(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::ApplicationCommand(interaction) = interaction {
+            let content = format!("{:#?}", ctx.session().await.read().await.users);
             if let Err(why) = interaction
                 .create_interaction_response(&ctx.http, |response| {
                     response
                         .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.content("Pong lmao"))
+                        .interaction_response_data(|message| message.content(content))
                 })
                 .await
             {
@@ -29,7 +32,9 @@ impl InteractionHandler for Ping {
             }
         }
     }
+}
 
+impl Command for Ping {
     fn create_command(
         self,
         command: &mut serenity::builder::CreateApplicationCommand,

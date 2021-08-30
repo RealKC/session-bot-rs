@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod session;
 
 use hotwatch::Hotwatch;
 use serenity::{
@@ -14,8 +15,15 @@ use std::{collections::HashMap, path::Path, sync::Arc};
 use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
-use crate::commands::interaction_handler::{register_guild_interaction_handler, InteractionMap};
-use crate::commands::ping::Ping;
+use crate::commands::{
+    buttons::ButtonYes,
+    interaction_handler::{register_interaction_handler, InteractionMap},
+};
+use crate::commands::{
+    buttons::{ButtonMaybe, ButtonNo},
+    ping::Ping,
+};
+use crate::commands::{hostgame::HostGame, interaction_handler::register_guild_command};
 use crate::config::Config;
 
 struct Handler;
@@ -23,12 +31,15 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        let data = ctx.data.read().await;
-        let map = data
+        let map = ctx
+            .data
+            .read()
+            .await
             .get::<InteractionMap>()
             .expect("There was an error retrieving the InteractionMap")
-            .write()
-            .await;
+            .read()
+            .await
+            .clone();
 
         match interaction.kind() {
             InteractionType::ApplicationCommand => {
@@ -67,7 +78,11 @@ impl EventHandler for Handler {
             .await
             .insert::<InteractionMap>(Arc::new(RwLock::new(map)));
 
-        register_guild_interaction_handler(ctx.clone(), 699271154065735771_u64, Ping).await;
+        register_guild_command(ctx.clone(), 699271154065735771_u64, Ping).await;
+        register_guild_command(ctx.clone(), 699271154065735771_u64, HostGame).await;
+        register_interaction_handler(ctx.clone(), ButtonYes).await;
+        register_interaction_handler(ctx.clone(), ButtonMaybe).await;
+        register_interaction_handler(ctx.clone(), ButtonNo).await;
     }
 }
 

@@ -1,13 +1,21 @@
 use std::{fs::File, io::Read, path::Path, sync::Arc};
 
 use serde::Deserialize;
-use serenity::prelude::{RwLock, TypeMapKey};
+use serenity::{
+    async_trait,
+    client::Context,
+    prelude::{RwLock, TypeMapKey},
+};
 use tracing::log::error;
+
+use crate::session::Session;
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
     pub application_id: u64,
     pub discord_token: String,
+    pub default_time: String,
+    pub default_description: String,
     pub games: Vec<Game>,
 }
 
@@ -45,5 +53,34 @@ impl Config {
                 None
             }
         }
+    }
+}
+
+#[async_trait]
+pub trait ContextExt {
+    async fn config(&self) -> Config;
+    async fn session(&self) -> Arc<RwLock<Session>>;
+}
+
+#[async_trait]
+impl ContextExt for Context {
+    async fn config(&self) -> Config {
+        self.data
+            .read()
+            .await
+            .get::<Config>()
+            .expect("Error reading config from TypeMap")
+            .read()
+            .await
+            .clone()
+    }
+
+    async fn session(&self) -> Arc<RwLock<Session>> {
+        self.data
+            .read()
+            .await
+            .get::<Session>()
+            .expect("Error reading session from TypeMap")
+            .clone()
     }
 }

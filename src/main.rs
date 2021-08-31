@@ -14,19 +14,16 @@ use std::{collections::HashMap, path::Path, sync::Arc};
 use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
-use crate::commands::{
-    buttons::{ButtonMaybe, ButtonNo},
-    ping::Ping,
-};
-use crate::commands::{hostgame::HostGame, interaction_handler::register_guild_command};
-use crate::config::Config;
 use crate::{
     commands::{
-        buttons::ButtonYes,
-        interaction_handler::{register_handler, Handler, InteractionMap},
+        buttons::{ButtonMaybe, ButtonNo, ButtonYes},
+        hostgame::HostGame,
+        interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
         ip::Ip,
+        ping::Ping,
         status::Status,
     },
+    config::Config,
     context_ext::ContextExt,
 };
 
@@ -67,10 +64,11 @@ impl EventHandler for ClientHandler {
             .await
             .insert::<InteractionMap>(Arc::new(RwLock::new(map)));
 
-        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Ping).await;
-        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, HostGame).await;
-        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Status).await;
-        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Ip).await;
+        let guild_id = ctx.config().await.guild_id;
+        register_guild_command(ctx.clone(), guild_id, Ping).await;
+        register_guild_command(ctx.clone(), guild_id, HostGame).await;
+        register_guild_command(ctx.clone(), guild_id, Status).await;
+        register_guild_command(ctx.clone(), guild_id, Ip).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonYes))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonMaybe))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonNo))).await;

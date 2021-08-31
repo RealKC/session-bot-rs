@@ -24,7 +24,7 @@ impl InteractionHandler for Ip {
 impl CommandHandler for Ip {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         let embed = ctx.config().await.ip_embed.to_discord_embed();
-        if let Err(why) = interaction
+        let res = interaction
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
@@ -34,8 +34,9 @@ impl CommandHandler for Ip {
                             .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                     })
             })
-            .await
-        {
+            .await;
+
+        if let Err(why) = res {
             warn!("Error responding to slash command: {}", why);
         }
     }

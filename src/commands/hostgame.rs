@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{context_ext::ContextExt, session::Session};
+use crate::{
+    context_ext::ContextExt,
+    session::{Session, UserState},
+};
 
 use super::interaction_handler::{CommandHandler, InteractionHandler};
 use chrono::{Local, NaiveDateTime, NaiveTime, TimeZone};
@@ -15,7 +18,7 @@ use serenity::{
                 ApplicationCommandOptionType,
             },
             message_component::ButtonStyle,
-            InteractionResponseType,
+            InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
         },
     },
     prelude::RwLock,
@@ -24,6 +27,38 @@ use tracing::warn;
 
 #[derive(Clone, Copy)]
 pub struct HostGame;
+
+async fn ping_all_not_in_vc(ctx: Context, channel_id: u64) {
+    let user_map = ctx.session().await.read().await.users.clone();
+    let members = ChannelId(ctx.config().await.vc_channel)
+        .to_channel(&ctx.http)
+        .await
+        .expect("Could not convert to Channel")
+        .guild()
+        .expect("Could not convert to GuildChannel")
+        .members(ctx.cache)
+        .await
+        .expect("Could not retrieve Member list");
+
+    let pings = user_map
+        .iter()
+        .filter(|(u, s)| **s == UserState::WillJoin && !members.iter().any(|m| m.user.id == **u))
+        .fold(String::new(), |lhs, (rhs, _)| {
+            lhs + format!("<@{}> ", rhs).as_str()
+        });
+
+    if pings.is_empty() {
+        return;
+    }
+
+    let content = format!("{} you're late, get in the VC!", pings);
+    if let Err(why) = ChannelId(channel_id)
+        .send_message(&ctx.http, |message| message.content(content))
+        .await
+    {
+        warn!("Error sending message to text channel");
+    }
+}
 
 async fn start_session(ctx: Context, time: &str, channel_id: u64) -> bool {
     let session_time =
@@ -53,19 +88,24 @@ async fn start_session(ctx: Context, time: &str, channel_id: u64) -> bool {
         let ctx = ctx2.clone();
         let ten_minutes_before =
             session_time.signed_duration_since(now) - chrono::Duration::minutes(10);
-        let ten_minutes_before = ten_minutes_before.to_std();
-        tokio::time::sleep(ten_minutes_before.unwrap()).await;
-        let game = ctx.session().await.read().await.game.clone();
-        ChannelId(game.channel_id)
-            .send_message(&ctx.http, |message| {
-                message.content(format!("<@&{}>", RoleId(game.role_id).to_string()))
-            })
-            .await
-            .expect("Error sending message to channel");
 
-        // ping the role
-        // tokio::time::sleep(std::time::Duration::from_secs(60 * 10 * 2));
+        if let Ok(delay) = ten_minutes_before.to_std() {
+            tokio::time::sleep(delay).await;
+            let game = ctx.session().await.read().await.game.clone();
+            ChannelId(game.channel_id)
+                .send_message(&ctx.http, |message| {
+                    message.content(format!(
+                        "<@&{}> Game starting in 10 minutes!",
+                        RoleId(game.role_id).to_string()
+                    ))
+                })
+                .await
+                .expect("Error sending message to channel");
+        }
+
+        tokio::time::sleep(std::time::Duration::from_secs(60 * 10 * 2)).await;
         // ping users who said yes but not in VC
+        ping_all_not_in_vc(ctx, channel_id).await;
     });
 
     let game = match ctx
@@ -174,6 +214,7 @@ impl CommandHandler for HostGame {
                     .interaction_response_data(|message| {
                         message
                             .content("Error creating session: No game registered to this channel")
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                     })
             })
             .await

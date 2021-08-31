@@ -10,6 +10,8 @@ use crate::embed::Embed;
 pub struct Config {
     pub application_id: u64,
     pub discord_token: String,
+    pub guild_id: u64,
+    pub vc_channel: u64,
     pub default_time: String,
     pub default_description: String,
     pub ip_embed: Embed,

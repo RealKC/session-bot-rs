@@ -5,7 +5,8 @@ use serenity::{
     async_trait,
     client::Context,
     model::interactions::{
-        application_command::ApplicationCommandInteraction, InteractionResponseType,
+        application_command::ApplicationCommandInteraction,
+        InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
     },
 };
 use tracing::log::warn;
@@ -22,12 +23,16 @@ impl InteractionHandler for Ip {
 #[async_trait]
 impl CommandHandler for Ip {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
-        let content = ctx.config().await.ip_message;
+        let embed = ctx.config().await.ip_embed.to_discord_embed();
         if let Err(why) = interaction
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.content(content))
+                    .interaction_response_data(|message| {
+                        message
+                            .add_embed(embed)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
+                    })
             })
             .await
         {

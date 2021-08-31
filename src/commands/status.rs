@@ -2,8 +2,13 @@ use crate::{context_ext::ContextExt, session::UserState};
 
 use super::interaction_handler::{CommandHandler, InteractionHandler};
 use serenity::{
-    async_trait, client::Context,
-    model::interactions::application_command::ApplicationCommandInteraction, utils::Colour,
+    async_trait,
+    client::Context,
+    model::interactions::{
+        application_command::ApplicationCommandInteraction,
+        InteractionApplicationCommandCallbackDataFlags,
+    },
+    utils::Colour,
 };
 use tracing::log::warn;
 
@@ -43,6 +48,7 @@ impl CommandHandler for Status {
                             .field("People who are unsure",if may_join.is_empty() {String::from("Nobody")} else {may_join}, false)
                             .field("People who don't want to",if wont_join.is_empty() {String::from("Nobody")} else {wont_join}, false)
                     })
+                    .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                 })
             })
             .await

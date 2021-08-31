@@ -1,6 +1,7 @@
 mod commands;
 mod config;
 mod context_ext;
+mod embed;
 mod session;
 
 use hotwatch::Hotwatch;

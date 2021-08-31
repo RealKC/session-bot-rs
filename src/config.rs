@@ -4,13 +4,15 @@ use serde::Deserialize;
 use serenity::prelude::{RwLock, TypeMapKey};
 use tracing::log::error;
 
+use crate::embed::Embed;
+
 #[derive(Deserialize, Clone)]
 pub struct Config {
     pub application_id: u64,
     pub discord_token: String,
     pub default_time: String,
     pub default_description: String,
-    pub ip_message: String,
+    pub ip_embed: Embed,
     pub games: Vec<Game>,
 }
 

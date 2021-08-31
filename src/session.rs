@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 
 use crate::config::Game;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UserState {
     WillJoin,
     MayJoin,

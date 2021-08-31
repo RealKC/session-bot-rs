@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::{config::ContextExt, session::Session};
+use crate::{context_ext::ContextExt, session::Session};
 
-use super::interaction_handler::{Command, InteractionHandler};
+use super::interaction_handler::{CommandHandler, InteractionHandler};
 use chrono::{Local, NaiveDateTime, NaiveTime, TimeZone};
 use serenity::{
     async_trait,
@@ -11,22 +11,23 @@ use serenity::{
         id::{ChannelId, RoleId},
         interactions::{
             application_command::{
-                ApplicationCommandInteractionDataOptionValue, ApplicationCommandOptionType,
+                ApplicationCommandInteraction, ApplicationCommandInteractionDataOptionValue,
+                ApplicationCommandOptionType,
             },
             message_component::ButtonStyle,
-            Interaction, InteractionResponseType,
+            InteractionResponseType,
         },
     },
     prelude::RwLock,
 };
-use tracing::{info, warn};
+use tracing::warn;
 
 #[derive(Clone, Copy)]
 pub struct HostGame;
 
 async fn start_session(ctx: Context, time: &str, channel_id: u64) -> bool {
     let session_time =
-        NaiveTime::parse_from_str(&time, "%H:%M").expect("Error parsing default time to string");
+        NaiveTime::parse_from_str(time, "%H:%M").expect("Error parsing default time to string");
     let now = Local::now();
     let today = Local::today();
     let session_time = Local
@@ -94,101 +95,93 @@ async fn start_session(ctx: Context, time: &str, channel_id: u64) -> bool {
     true
 }
 
-#[async_trait]
 impl InteractionHandler for HostGame {
     fn name(&self) -> &'static str {
         "hostgame"
     }
+}
 
-    async fn invoke(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::ApplicationCommand(interaction) = interaction {
-            info!("{:#?}", interaction);
+#[async_trait]
+impl CommandHandler for HostGame {
+    async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
+        let config = ctx.config().await;
+        let mut time = config.default_time;
+        let mut description = config.default_description;
 
-            let config = ctx.config().await;
-            let mut time = config.default_time;
-            let mut description = config.default_description;
-
-            for option in &interaction.data.options {
-                match option.name.as_ref() {
-                    "time" => {
-                        if let ApplicationCommandInteractionDataOptionValue::String(s) =
-                            option.resolved.as_ref().unwrap()
-                        {
-                            time = s.clone();
-                        }
+        for option in &interaction.data.options {
+            match option.name.as_ref() {
+                "time" => {
+                    if let ApplicationCommandInteractionDataOptionValue::String(s) =
+                        option.resolved.as_ref().unwrap()
+                    {
+                        time = s.clone();
                     }
-                    "description" => {
-                        if let ApplicationCommandInteractionDataOptionValue::String(s) =
-                            option.resolved.as_ref().unwrap()
-                        {
-                            description = s.clone();
-                        }
-                    }
-                    _ => {}
                 }
+                "description" => {
+                    if let ApplicationCommandInteractionDataOptionValue::String(s) =
+                        option.resolved.as_ref().unwrap()
+                    {
+                        description = s.clone();
+                    }
+                }
+                _ => {}
             }
+        }
 
-            let worked = start_session(ctx.clone(), &time, *interaction.channel_id.as_u64()).await;
-            if worked {
-                if let Err(why) = interaction
-                    .create_interaction_response(&ctx.http, |response| {
-                        response
-                            .kind(InteractionResponseType::ChannelMessageWithSource)
-                            .interaction_response_data(|message| {
-                                message
-                                    .content(format!(
-                                        "time: {}\ndescription: {}",
-                                        time, description
-                                    ))
-                                    .components(|component| {
-                                        component.create_action_row(|row| {
-                                            row.create_button(|button| {
-                                                button
-                                                    .custom_id("button-yes")
-                                                    .label("YES")
-                                                    .style(ButtonStyle::Primary)
-                                            })
-                                            .create_button(|button| {
-                                                button
-                                                    .custom_id("button-maybe")
-                                                    .label("MAYBE")
-                                                    .style(ButtonStyle::Primary)
-                                            })
-                                            .create_button(|button| {
+        let worked = start_session(ctx.clone(), &time, *interaction.channel_id.as_u64()).await;
+        if worked {
+            if let Err(why) = interaction
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| {
+                            message
+                                .content(format!("time: {}\ndescription: {}", time, description))
+                                .components(|component| {
+                                    component.create_action_row(|row| {
+                                        row.create_button(|button| {
+                                            button
+                                                .custom_id("button-yes")
+                                                .label("YES")
+                                                .style(ButtonStyle::Primary)
+                                        })
+                                        .create_button(|button| {
+                                            button
+                                                .custom_id("button-maybe")
+                                                .label("MAYBE")
+                                                .style(ButtonStyle::Primary)
+                                        })
+                                        .create_button(
+                                            |button| {
                                                 button
                                                     .custom_id("button-no")
                                                     .label("NO")
                                                     .style(ButtonStyle::Primary)
-                                            })
-                                        })
+                                            },
+                                        )
                                     })
-                            })
-                    })
-                    .await
-                {
-                    warn!("Error responding to slash command: {}", why);
-                }
-            } else {
-                if let Err(why) = interaction
-                    .create_interaction_response(&ctx.http, |response| {
-                        response
-                            .kind(InteractionResponseType::ChannelMessageWithSource)
-                            .interaction_response_data(|message| {
-                                message.content(
-                                    "Error creating session: No game registered to this channel",
-                                )
-                            })
-                    })
-                    .await
-                {
-                    warn!("Error responding to slash command: {}", why);
-                }
+                                })
+                        })
+                })
+                .await
+            {
+                warn!("Error responding to slash command: {}", why);
             }
+        } else if let Err(why) = interaction
+            .create_interaction_response(&ctx.http, |response| {
+                response
+                    .kind(InteractionResponseType::ChannelMessageWithSource)
+                    .interaction_response_data(|message| {
+                        message
+                            .content("Error creating session: No game registered to this channel")
+                    })
+            })
+            .await
+        {
+            warn!("Error responding to slash command: {}", why);
         }
     }
-}
 
-impl Command for HostGame {
     fn create_command(
         self,
         command: &mut serenity::builder::CreateApplicationCommand,

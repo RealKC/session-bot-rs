@@ -4,55 +4,68 @@ use serenity::{
     client::Context,
     model::{
         id::GuildId,
-        interactions::{application_command::ApplicationCommand, Interaction},
+        interactions::{
+            application_command::{ApplicationCommand, ApplicationCommandInteraction},
+            message_component::MessageComponentInteraction,
+        },
     },
     prelude::{RwLock, TypeMapKey},
 };
 use std::{collections::HashMap, sync::Arc};
 
-#[async_trait]
 pub trait InteractionHandler {
-    async fn invoke(&self, ctx: Context, interaction: Interaction);
-
     fn name(&self) -> &'static str;
 }
 
-pub trait Command: InteractionHandler {
+#[async_trait]
+pub trait CommandHandler: InteractionHandler {
+    async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction);
+
     fn create_command(
         self,
         command: &mut CreateApplicationCommand,
     ) -> &mut CreateApplicationCommand;
 }
 
+#[async_trait]
+pub trait MessageHandler: InteractionHandler {
+    async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction);
+}
+
+#[derive(Clone)]
+pub enum Handler {
+    Command(Arc<dyn CommandHandler + Send + Sync>),
+    Message(Arc<dyn MessageHandler + Send + Sync>),
+}
+
 #[derive(Clone)]
 pub struct InteractionMap;
 
 impl TypeMapKey for InteractionMap {
-    type Value = Arc<RwLock<HashMap<&'static str, Arc<dyn InteractionHandler + Send + Sync>>>>;
+    type Value = Arc<RwLock<HashMap<&'static str, Handler>>>;
 }
 
 pub async fn register_global_command<T>(ctx: Context, handler: T)
 where
-    T: Command + Send + Sync + Copy + 'static,
+    T: CommandHandler + Send + Sync + Copy + 'static,
 {
     ApplicationCommand::create_global_application_command(&ctx.http, move |f| {
         handler.create_command(f)
     })
     .await
-    .expect(
-        format!(
+    .unwrap_or_else(|_| {
+        panic!(
             "There was an error creating global {} command",
             handler.name()
         )
-        .as_str(),
-    );
+    });
 
-    register_interaction_handler(ctx, handler).await;
+    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
 }
 
 pub async fn register_guild_command<T>(ctx: Context, guild_id: u64, handler: T)
 where
-    T: Command + Send + Sync + Copy + 'static,
+    T: CommandHandler + Send + Sync + Copy + 'static,
 {
     GuildId(guild_id)
         .create_application_command(&ctx.http, |f| handler.create_command(f))
@@ -66,13 +79,15 @@ where
             .as_str(),
         );
 
-    register_interaction_handler(ctx, handler).await;
+    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
 }
 
-pub async fn register_interaction_handler<T>(ctx: Context, handler: T)
-where
-    T: InteractionHandler + Send + Sync + Copy + 'static,
-{
+pub async fn register_handler(ctx: Context, handler: Handler) {
+    let name = match &handler {
+        Handler::Command(command) => command.name(),
+        Handler::Message(message) => message.name(),
+    };
+
     ctx.data
         .read()
         .await
@@ -80,5 +95,5 @@ where
         .expect("There was an error retrieving the InteractionMap")
         .write()
         .await
-        .insert(handler.name(), Arc::new(handler.clone()));
+        .insert(name, handler);
 }

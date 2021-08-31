@@ -1,14 +1,12 @@
 mod commands;
 mod config;
+mod context_ext;
 mod session;
 
 use hotwatch::Hotwatch;
 use serenity::{
     async_trait,
-    model::{
-        gateway::Ready,
-        interactions::{Interaction, InteractionType},
-    },
+    model::{gateway::Ready, interactions::Interaction},
     prelude::*,
 };
 use std::{collections::HashMap, path::Path, sync::Arc};
@@ -16,53 +14,43 @@ use tokio::runtime::Handle;
 use tracing::{error, info, warn};
 
 use crate::commands::{
-    buttons::ButtonYes,
-    interaction_handler::{register_interaction_handler, InteractionMap},
-};
-use crate::commands::{
     buttons::{ButtonMaybe, ButtonNo},
     ping::Ping,
 };
 use crate::commands::{hostgame::HostGame, interaction_handler::register_guild_command};
 use crate::config::Config;
+use crate::{
+    commands::{
+        buttons::ButtonYes,
+        interaction_handler::{register_handler, Handler, InteractionMap},
+        ip::Ip,
+        status::Status,
+    },
+    context_ext::ContextExt,
+};
 
-struct Handler;
+struct ClientHandler;
 
 #[async_trait]
-impl EventHandler for Handler {
+impl EventHandler for ClientHandler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        let map = ctx
-            .data
-            .read()
-            .await
-            .get::<InteractionMap>()
-            .expect("There was an error retrieving the InteractionMap")
-            .read()
-            .await
-            .clone();
+        let map = ctx.interaction_map().await;
 
-        match interaction.kind() {
-            InteractionType::ApplicationCommand => {
-                // UNWRAP SAFETY: interaction is always a ApplicationCommand
-                let name = interaction.clone().application_command().unwrap().data.name;
-                if let Some(handler) = map.get(name.as_str()) {
-                    handler.invoke(ctx.clone(), interaction).await;
+        match interaction {
+            Interaction::ApplicationCommand(interaction) => {
+                let name = interaction.data.name.clone();
+                if let Some(Handler::Command(command)) = map.get(name.as_str()) {
+                    command.invoke(ctx.clone(), interaction).await;
                 } else {
                     warn!("Slash command not found in map: {}", name);
                 }
             }
-            InteractionType::MessageComponent => {
-                // UNWRAP SAFETY: interaction is always a MessageComponent
-                let name = interaction
-                    .clone()
-                    .message_component()
-                    .unwrap()
-                    .data
-                    .custom_id;
-                if let Some(handler) = map.get(name.as_str()) {
-                    handler.invoke(ctx.clone(), interaction).await;
+            Interaction::MessageComponent(interaction) => {
+                let name = interaction.data.custom_id.clone();
+                if let Some(Handler::Message(message_handler)) = map.get(name.as_str()) {
+                    message_handler.invoke(ctx.clone(), interaction).await;
                 } else {
-                    warn!("Slash command not found in map: {}", name);
+                    warn!("Message handler not found in map: {}", name);
                 }
             }
             _ => error!("Error: interaction kind not recognized: {:?}", interaction),
@@ -78,11 +66,13 @@ impl EventHandler for Handler {
             .await
             .insert::<InteractionMap>(Arc::new(RwLock::new(map)));
 
-        register_guild_command(ctx.clone(), 699271154065735771_u64, Ping).await;
-        register_guild_command(ctx.clone(), 699271154065735771_u64, HostGame).await;
-        register_interaction_handler(ctx.clone(), ButtonYes).await;
-        register_interaction_handler(ctx.clone(), ButtonMaybe).await;
-        register_interaction_handler(ctx.clone(), ButtonNo).await;
+        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Ping).await;
+        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, HostGame).await;
+        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Status).await;
+        register_guild_command(ctx.clone(), 699_271_154_065_735_771_u64, Ip).await;
+        register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonYes))).await;
+        register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonMaybe))).await;
+        register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonNo))).await;
     }
 }
 
@@ -95,7 +85,7 @@ async fn main() {
     let application_id: u64 = config.application_id;
 
     let mut client = Client::builder(token)
-        .event_handler(Handler)
+        .event_handler(ClientHandler)
         .application_id(application_id)
         .await
         .expect("Error creating client");

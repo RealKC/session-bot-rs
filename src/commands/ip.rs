@@ -11,18 +11,18 @@ use serenity::{
 use tracing::log::warn;
 
 #[derive(Clone, Copy)]
-pub struct Ping;
+pub struct Ip;
 
-impl InteractionHandler for Ping {
+impl InteractionHandler for Ip {
     fn name(&self) -> &'static str {
-        "ping"
+        "ip"
     }
 }
 
 #[async_trait]
-impl CommandHandler for Ping {
+impl CommandHandler for Ip {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
-        let content = format!("{:#?}", ctx.session().await.read().await.users);
+        let content = ctx.config().await.ip_message;
         if let Err(why) = interaction
             .create_interaction_response(&ctx.http, |response| {
                 response
@@ -39,6 +39,8 @@ impl CommandHandler for Ping {
         self,
         command: &mut serenity::builder::CreateApplicationCommand,
     ) -> &mut serenity::builder::CreateApplicationCommand {
-        command.name(self.name()).description("A ping/pong command")
+        command
+            .name(self.name())
+            .description("Shows the IPs currently in use")
     }
 }

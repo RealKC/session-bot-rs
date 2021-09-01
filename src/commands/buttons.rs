@@ -32,7 +32,7 @@ impl MessageHandler for ButtonYes {
         let res = interaction
                 .create_interaction_response(&ctx.http, |response| {
                     response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.content(format!("thanks for saying yes, {}", interaction.user))
+                    .interaction_response_data(|message| message.content(format!("Thanks for saying yes, {}", interaction.user))
                     .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL))
                 })
                 .await;
@@ -63,7 +63,7 @@ impl MessageHandler for ButtonMaybe {
         let res = interaction
             .create_interaction_response(&ctx.http, |response| {
                 response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| message.content(format!("thanks for saying maybe, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL))
+                .interaction_response_data(|message| message.content(format!("Thanks for saying maybe, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL))
             })
             .await;
 
@@ -93,7 +93,7 @@ impl MessageHandler for ButtonNo {
             .create_interaction_response(&ctx.http, |response| {
                 response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
                 .interaction_response_data(|message| {
-                    message.content(format!("thanks for saying no, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
+                    message.content(format!("Thanks for saying no, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
                 })
             })
             .await;

@@ -13,7 +13,6 @@ pub struct Config {
     pub guild_id: u64,
     pub vc_channel: u64,
     pub default_time: String,
-    pub default_description: String,
     pub ip_embed: Embed,
     pub games: Vec<Game>,
 }

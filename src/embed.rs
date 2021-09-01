@@ -18,13 +18,13 @@ pub struct EmbedSection {
 impl Embed {
     pub fn to_discord_embed(&self) -> CreateEmbed {
         let mut embed = CreateEmbed::default();
-        let fields = self.sections.iter().map(|section| section.to_field());
+        let fields = self.sections.iter().map(EmbedSection::to_field);
 
         embed
             .title(self.title.clone())
             .colour(self.colour)
             .fields(fields)
-            .to_owned()
+            .clone()
     }
 }
 

@@ -1,7 +1,8 @@
 use std::{collections::HashMap, sync::Arc};
 
+use chrono::{DateTime, Local};
 use serenity::{
-    model::id::UserId,
+    model::id::{MessageId, UserId},
     prelude::{RwLock, TypeMapKey},
 };
 use tokio::task::JoinHandle;
@@ -18,8 +19,10 @@ pub enum UserState {
 pub struct Session {
     pub game: Game,
     pub users: HashMap<UserId, UserState>,
-    pub will_happen_tomorrow: bool,
+    pub time: DateTime<Local>,
     pub handle: JoinHandle<()>,
+    pub message_id: MessageId,
+    pub host: UserId,
 }
 
 impl TypeMapKey for Session {
@@ -27,12 +30,20 @@ impl TypeMapKey for Session {
 }
 
 impl Session {
-    pub fn new(game: Game, handle: JoinHandle<()>, will_happen_tomorrow: bool) -> Self {
+    pub fn new(
+        game: Game,
+        handle: JoinHandle<()>,
+        time: DateTime<Local>,
+        message_id: MessageId,
+        host: UserId,
+    ) -> Self {
         Self {
             game,
             users: HashMap::new(),
-            will_happen_tomorrow,
+            time,
             handle,
+            message_id,
+            host,
         }
     }
 }

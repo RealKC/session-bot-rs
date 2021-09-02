@@ -5,7 +5,10 @@ use crate::{
     session::{Session, UserState},
 };
 
-use super::interaction_handler::{CommandHandler, InteractionHandler};
+use super::{
+    interaction_handler::{CommandHandler, InteractionHandler},
+    status::get_status_embed,
+};
 use chrono::{DateTime, Local, NaiveDateTime, NaiveTime, TimeZone};
 use serenity::{
     async_trait,
@@ -68,6 +71,8 @@ async fn start_session(
     description: &str,
 ) -> bool {
     let channel_id = interaction.channel_id.as_u64().to_owned();
+    let guild_id = interaction.guild_id.unwrap_or_default().as_u64().to_owned();
+
     let session_time =
         NaiveTime::parse_from_str(time, "%H:%M").expect("Error parsing default time to string");
     let now = Local::now();
@@ -93,21 +98,54 @@ async fn start_session(
         let ten_minutes_before =
             session_time.signed_duration_since(now) - chrono::Duration::minutes(10);
 
-        if let Ok(delay) = ten_minutes_before.to_std() {
-            tokio::time::sleep(delay).await;
-            let game = ctx.session().await.read().await.game.clone();
-            ChannelId(game.channel_id)
-                .send_message(&ctx.http, |message| {
-                    message.content(format!(
-                        "<@&{}> Game starting in 10 minutes!",
-                        RoleId(game.role_id).to_string()
-                    ))
-                })
-                .await
-                .expect("Error sending message to channel");
-        }
+        tokio::time::sleep(
+            ten_minutes_before
+                .to_std()
+                .unwrap_or(std::time::Duration::from_secs(60)),
+        )
+        .await;
+        let game = ctx.session().await.read().await.game.clone();
 
-        tokio::time::sleep(std::time::Duration::from_secs(60 * 10 * 2)).await;
+        ChannelId(channel_id)
+            .send_message(&ctx.http, |message| {
+                message.content(format!(
+                    "<@&{}> Game starting in 10 minutes!",
+                    RoleId(game.role_id).to_string()
+                ))
+            })
+            .await
+            .expect("Error sending message to channel");
+
+        tokio::time::sleep(
+            session_time
+                .signed_duration_since(now)
+                .to_std()
+                .unwrap_or_default(),
+        )
+        .await;
+
+        let member_amount = ctx
+            .session()
+            .await
+            .read()
+            .await
+            .users
+            .iter()
+            .filter(|(_, s)| **s == UserState::WillJoin)
+            .count();
+
+        let embed = get_status_embed(ctx.clone(), guild_id).await;
+        ChannelId(channel_id)
+            .send_message(&ctx.http, |message| {
+                message.set_embed(embed).content(format!(
+                    "{} Session has started! {} people said Yes!",
+                    game.name, member_amount
+                ))
+            })
+            .await
+            .expect("Error sending message to channel");
+
+        tokio::time::sleep(std::time::Duration::from_secs(60 * 10)).await;
         // ping users who said yes but not in VC
         ping_all_not_in_vc(ctx, channel_id).await;
     });

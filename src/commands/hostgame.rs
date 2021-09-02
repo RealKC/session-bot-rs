@@ -7,6 +7,7 @@ use crate::{
 
 use super::{
     interaction_handler::{CommandHandler, InteractionHandler},
+    prelude::interaction_respond_with_private_message,
     status::get_status_embed,
 };
 use chrono::{DateTime, Local, NaiveDateTime, NaiveTime, TimeZone};
@@ -22,7 +23,7 @@ use serenity::{
                 ApplicationCommandOptionType,
             },
             message_component::ButtonStyle,
-            InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
+            Interaction, InteractionResponseType,
         },
     },
     prelude::RwLock,
@@ -104,11 +105,13 @@ async fn start_session(
                 .unwrap_or(std::time::Duration::from_secs(60)),
         )
         .await;
+
         let game = ctx.session().await.read().await.game.clone();
+        let embed = get_status_embed(ctx.clone(), guild_id).await;
 
         ChannelId(channel_id)
             .send_message(&ctx.http, |message| {
-                message.content(format!(
+                message.set_embed(embed).content(format!(
                     "<@&{}> Game starting in 10 minutes!",
                     RoleId(game.role_id).to_string()
                 ))
@@ -259,18 +262,12 @@ impl InteractionHandler for HostGame {
 impl CommandHandler for HostGame {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         if ctx.is_session_running().await {
-            interaction
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message
-                                .content("Error creating session: Session already running")
-                                .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
-                        })
-                })
-                .await
-                .unwrap_or_else(|why| warn!("Error responding to slash command {}", why));
+            interaction_respond_with_private_message(
+                ctx,
+                Interaction::ApplicationCommand(interaction),
+                "Error creating session: Session already running",
+            )
+            .await;
             return;
         }
 
@@ -299,22 +296,12 @@ impl CommandHandler for HostGame {
         }
 
         if !start_session(ctx.clone(), interaction.clone(), &time, &description).await {
-            if let Err(why) = interaction
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message
-                                .content(
-                                    "Error creating session: No game registered to this channel",
-                                )
-                                .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
-                        })
-                })
-                .await
-            {
-                warn!("Error responding to slash command: {}", why);
-            }
+            interaction_respond_with_private_message(
+                ctx,
+                Interaction::ApplicationCommand(interaction),
+                "Error creating session: No game registered to this channel",
+            )
+            .await;
         }
     }
 

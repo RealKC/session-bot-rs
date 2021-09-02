@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{context_ext::ContextExt, session::UserState};
+use crate::{
+    commands::prelude::interaction_respond_with_private_message, context_ext::ContextExt,
+    session::UserState,
+};
 
 use super::interaction_handler::{CommandHandler, InteractionHandler};
 use chrono::{Duration, Local};
@@ -11,7 +14,7 @@ use serenity::{
     model::{
         id::UserId,
         interactions::{
-            application_command::ApplicationCommandInteraction,
+            application_command::ApplicationCommandInteraction, Interaction,
             InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
         },
     },
@@ -112,18 +115,12 @@ pub async fn get_status_embed(ctx: Context, guild_id: u64) -> CreateEmbed {
 impl CommandHandler for Status {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         if !ctx.is_session_running().await {
-            interaction
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| {
-                            message
-                                .content("No session currently running")
-                                .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
-                        })
-                })
-                .await
-                .unwrap_or_else(|why| warn!("Error responding to slash command: {}", why));
+            interaction_respond_with_private_message(
+                ctx,
+                Interaction::ApplicationCommand(interaction),
+                "No session currently running",
+            )
+            .await;
             return;
         }
 

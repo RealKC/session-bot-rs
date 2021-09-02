@@ -1,15 +1,14 @@
 use crate::context_ext::ContextExt;
 
-use super::interaction_handler::{InteractionHandler, MessageHandler};
+use super::{
+    interaction_handler::{InteractionHandler, MessageHandler},
+    prelude::interaction_respond_with_private_message,
+};
 use serenity::{
     async_trait,
     client::Context,
-    model::interactions::{
-        message_component::MessageComponentInteraction,
-        InteractionApplicationCommandCallbackDataFlags,
-    },
+    model::interactions::{message_component::MessageComponentInteraction, Interaction},
 };
-use tracing::log::warn;
 
 #[derive(Clone, Copy)]
 pub struct ButtonYes;
@@ -29,24 +28,20 @@ impl InteractionHandler for ButtonYes {
 #[async_trait]
 impl MessageHandler for ButtonYes {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
-        let res = interaction
-                .create_interaction_response(&ctx.http, |response| {
-                    response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.content(format!("Thanks for saying yes, {}", interaction.user))
-                    .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL))
-                })
-                .await;
+        let user_id = interaction.user.id;
+        interaction_respond_with_private_message(
+            ctx.clone(),
+            Interaction::MessageComponent(interaction),
+            format!("Thanks for saying yes, <@{}>", user_id).as_str(),
+        )
+        .await;
 
-        if let Err(why) = res {
-            warn!("Error handling invocation: {}", why);
-        } else {
-            ctx.session()
-                .await
-                .write()
-                .await
-                .users
-                .insert(interaction.user.id, crate::session::UserState::WillJoin);
-        }
+        ctx.session()
+            .await
+            .write()
+            .await
+            .users
+            .insert(user_id, crate::session::UserState::WillJoin);
     }
 }
 
@@ -60,23 +55,20 @@ impl InteractionHandler for ButtonMaybe {
 #[async_trait]
 impl MessageHandler for ButtonMaybe {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
-        let res = interaction
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| message.content(format!("Thanks for saying maybe, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL))
-            })
-            .await;
+        let user_id = interaction.user.id;
+        interaction_respond_with_private_message(
+            ctx.clone(),
+            Interaction::MessageComponent(interaction),
+            format!("Thanks for saying maybe, <@{}>", user_id).as_str(),
+        )
+        .await;
 
-        if let Err(why) = res {
-            warn!("Error handling invocation: {}", why);
-        } else {
-            ctx.session()
-                .await
-                .write()
-                .await
-                .users
-                .insert(interaction.user.id, crate::session::UserState::MayJoin);
-        }
+        ctx.session()
+            .await
+            .write()
+            .await
+            .users
+            .insert(user_id, crate::session::UserState::MayJoin);
     }
 }
 
@@ -89,24 +81,19 @@ impl InteractionHandler for ButtonNo {
 #[async_trait]
 impl MessageHandler for ButtonNo {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
-        let res = interaction
-            .create_interaction_response(&ctx.http, |response| {
-                response.kind(serenity::model::interactions::InteractionResponseType::ChannelMessageWithSource)
-                .interaction_response_data(|message| {
-                    message.content(format!("Thanks for saying no, {}", interaction.user)).flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
-                })
-            })
-            .await;
+        let user_id = interaction.user.id;
+        interaction_respond_with_private_message(
+            ctx.clone(),
+            Interaction::MessageComponent(interaction),
+            format!("Thanks for saying no, <@{}>", user_id).as_str(),
+        )
+        .await;
 
-        if let Err(why) = res {
-            warn!("Error handling invocation: {}", why);
-        } else {
-            ctx.session()
-                .await
-                .write()
-                .await
-                .users
-                .insert(interaction.user.id, crate::session::UserState::WontJoin);
-        }
+        ctx.session()
+            .await
+            .write()
+            .await
+            .users
+            .insert(user_id, crate::session::UserState::WontJoin);
     }
 }

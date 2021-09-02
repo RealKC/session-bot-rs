@@ -1,7 +1,10 @@
 use std::{fs::File, io::Read, path::Path, sync::Arc};
 
 use serde::Deserialize;
-use serenity::prelude::{RwLock, TypeMapKey};
+use serenity::{
+    model::id::UserId,
+    prelude::{RwLock, TypeMapKey},
+};
 use tracing::log::error;
 
 use crate::embed::Embed;
@@ -14,6 +17,7 @@ pub struct Config {
     pub vc_channel: u64,
     pub default_time: String,
     pub ip_embed: Embed,
+    pub admins: Vec<UserId>,
     pub games: Vec<Game>,
 }
 

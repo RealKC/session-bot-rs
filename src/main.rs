@@ -17,10 +17,10 @@ use tracing::{error, info, warn};
 use crate::{
     commands::{
         buttons::{ButtonMaybe, ButtonNo, ButtonYes},
+        endhost::EndHost,
         hostgame::HostGame,
         interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
         ip::Ip,
-        ping::Ping,
         status::Status,
     },
     config::Config,
@@ -65,8 +65,8 @@ impl EventHandler for ClientHandler {
             .insert::<InteractionMap>(Arc::new(RwLock::new(map)));
 
         let guild_id = ctx.config().await.guild_id;
-        register_guild_command(ctx.clone(), guild_id, Ping).await;
         register_guild_command(ctx.clone(), guild_id, HostGame).await;
+        register_guild_command(ctx.clone(), guild_id, EndHost).await;
         register_guild_command(ctx.clone(), guild_id, Status).await;
         register_guild_command(ctx.clone(), guild_id, Ip).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonYes))).await;

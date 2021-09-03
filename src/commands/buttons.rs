@@ -2,7 +2,7 @@ use crate::context_ext::ContextExt;
 
 use super::{
     interaction_handler::{InteractionHandler, MessageHandler},
-    prelude::interaction_respond_with_private_message,
+    prelude::*,
 };
 use serenity::{
     async_trait,

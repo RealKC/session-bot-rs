@@ -112,7 +112,7 @@ async fn start_session(
         ChannelId(channel_id)
             .send_message(&ctx.http, |message| {
                 message.set_embed(embed).content(format!(
-                    "<@&{}> Game starting in 10 minutes!",
+                    "<@&{}> Session starting soon!",
                     RoleId(game.role_id).to_string()
                 ))
             })
@@ -261,7 +261,7 @@ impl InteractionHandler for HostGame {
 #[async_trait]
 impl CommandHandler for HostGame {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
-        if ctx.is_session_running().await {
+        if ctx.is_session_present().await {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),

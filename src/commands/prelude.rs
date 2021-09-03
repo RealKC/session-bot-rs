@@ -1,8 +1,10 @@
-use serenity::{
+pub use serenity::{
     client::Context,
-    model::interactions::{Interaction, InteractionResponseType},
+    model::interactions::{
+        Interaction, InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
+    },
 };
-use tracing::warn;
+pub use tracing::{error, info, warn};
 
 pub async fn interaction_respond_with_private_message(
     ctx: Context,
@@ -14,7 +16,11 @@ pub async fn interaction_respond_with_private_message(
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.content(content))
+                    .interaction_response_data(|message| {
+                        message
+                            .content(content)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
+                    })
             })
             .await
             .unwrap_or_else(|why| warn!("Error responding to interaction: {}", why)),
@@ -22,7 +28,11 @@ pub async fn interaction_respond_with_private_message(
             .create_interaction_response(&ctx.http, |response| {
                 response
                     .kind(InteractionResponseType::ChannelMessageWithSource)
-                    .interaction_response_data(|message| message.content(content))
+                    .interaction_response_data(|message| {
+                        message
+                            .content(content)
+                            .flags(InteractionApplicationCommandCallbackDataFlags::EPHEMERAL)
+                    })
             })
             .await
             .unwrap_or_else(|why| warn!("Error responding to interaction: {}", why)),

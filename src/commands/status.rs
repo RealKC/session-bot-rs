@@ -31,17 +31,19 @@ impl InteractionHandler for Status {
     }
 }
 
-fn users_with_state(user_map: &HashMap<UserId, UserState>, state: UserState) -> (String, u64) {
-    let ans = user_map
+pub fn users_with_state(user_map: &HashMap<UserId, UserState>, state: UserState) -> (String, u64) {
+    let mut ans = user_map
         .iter()
         .filter(|(_, s)| **s == state)
         .fold((String::new(), 0), |lhs, (rhs, _)| {
-            (lhs.0 + format!("<@{}> ", rhs).as_str(), lhs.1 + 1)
+            (lhs.0 + format!("<@{}>, ", rhs).as_str(), lhs.1 + 1)
         });
 
     if ans.0.is_empty() {
         ("Nobody".to_string(), 0)
     } else {
+        ans.0.pop();
+        ans.0.pop();
         ans
     }
 }
@@ -114,7 +116,7 @@ pub async fn get_status_embed(ctx: Context, guild_id: u64) -> CreateEmbed {
 #[async_trait]
 impl CommandHandler for Status {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
-        if !ctx.is_session_running().await {
+        if !ctx.is_session_present().await {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),

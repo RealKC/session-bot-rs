@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
+use chrono::Local;
 use serenity::{async_trait, client::Context, prelude::RwLock};
 
 use crate::{
@@ -12,7 +13,8 @@ use crate::{
 pub trait ContextExt {
     async fn config(&self) -> Config;
     async fn session(&self) -> Arc<RwLock<Session>>;
-    async fn is_session_running(&self) -> bool;
+    async fn is_session_present(&self) -> bool;
+    async fn is_session_started(&self) -> bool;
     async fn interaction_map(&self) -> HashMap<&'static str, Handler>;
 }
 
@@ -38,8 +40,12 @@ impl ContextExt for Context {
             .clone()
     }
 
-    async fn is_session_running(&self) -> bool {
+    async fn is_session_present(&self) -> bool {
         self.data.read().await.get::<Session>().is_some()
+    }
+
+    async fn is_session_started(&self) -> bool {
+        self.is_session_present().await && self.session().await.read().await.time <= Local::now()
     }
 
     async fn interaction_map(&self) -> HashMap<&'static str, Handler> {

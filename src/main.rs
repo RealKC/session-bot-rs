@@ -17,7 +17,7 @@ use tracing::{error, info, warn};
 use crate::{
     commands::{
         buttons::{ButtonMaybe, ButtonNo, ButtonYes},
-        endhost::EndHost,
+        endhost::{EndHost, EndHostButtonNo, EndHostButtonYes},
         hostgame::HostGame,
         interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
         ip::Ip,
@@ -72,6 +72,8 @@ impl EventHandler for ClientHandler {
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonYes))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonMaybe))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonNo))).await;
+        register_handler(ctx.clone(), Handler::Message(Arc::new(EndHostButtonYes))).await;
+        register_handler(ctx.clone(), Handler::Message(Arc::new(EndHostButtonNo))).await;
     }
 }
 

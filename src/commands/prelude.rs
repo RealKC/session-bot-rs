@@ -3,6 +3,7 @@ pub use serenity::{
     model::interactions::{
         Interaction, InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
     },
+    model::prelude::*,
 };
 pub use tracing::{error, info, warn};
 

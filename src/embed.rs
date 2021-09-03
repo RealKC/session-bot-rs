@@ -5,6 +5,8 @@ use serenity::{builder::CreateEmbed, utils::Colour};
 pub struct Embed {
     title: String,
     colour: Colour,
+    description: Option<String>,
+    image: Option<String>,
     sections: Vec<EmbedSection>,
 }
 
@@ -12,7 +14,6 @@ pub struct Embed {
 pub struct EmbedSection {
     title: String,
     content: String,
-    inline: Option<bool>,
 }
 
 impl Embed {
@@ -20,17 +21,28 @@ impl Embed {
         let mut embed = CreateEmbed::default();
         let fields = self.sections.iter().map(EmbedSection::to_field);
 
-        embed
+        embed = embed
             .title(self.title.clone())
             .colour(self.colour)
             .fields(fields)
-            .clone()
+            .to_owned();
+
+        embed = match &self.description {
+            None => embed,
+            Some(s) => embed.description(s).to_owned(),
+        };
+
+        embed = match &self.image {
+            None => embed,
+            Some(s) => embed.image(s).to_owned(),
+        };
+
+        embed
     }
 }
 
 impl EmbedSection {
     pub fn to_field(&self) -> (String, String, bool) {
-        let inline = self.inline == Some(true);
-        (self.title.clone(), self.content.clone(), inline)
+        (self.title.clone(), self.content.clone(), false)
     }
 }

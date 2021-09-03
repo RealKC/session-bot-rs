@@ -7,7 +7,7 @@ use serenity::{
 };
 use tracing::log::error;
 
-use crate::embed::Embed;
+use crate::{commands::help::HelpPage, embed::Embed};
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
@@ -17,6 +17,8 @@ pub struct Config {
     pub vc_channel: u64,
     pub default_time: String,
     pub ip_embed: Embed,
+    pub default_help: Embed,
+    pub help: Vec<HelpPage>,
     pub admins: Vec<UserId>,
     pub games: Vec<Game>,
 }

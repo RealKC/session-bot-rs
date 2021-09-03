@@ -138,11 +138,17 @@ async fn start_session(
             .count();
 
         let embed = get_status_embed(ctx.clone(), guild_id).await;
+        let person_or_people = if member_amount == 1 {
+            "person"
+        } else {
+            "people"
+        };
+
         ChannelId(channel_id)
             .send_message(&ctx.http, |message| {
                 message.set_embed(embed).content(format!(
-                    "{} Session has started! {} people said Yes!",
-                    game.name, member_amount
+                    "{} Session has started! {} {} said Yes!",
+                    game.name, member_amount, person_or_people
                 ))
             })
             .await

@@ -7,11 +7,11 @@ pub struct Embed {
     colour: Colour,
     description: Option<String>,
     image: Option<String>,
-    sections: Vec<EmbedSection>,
+    sections: Vec<Section>,
 }
 
 #[derive(Deserialize, Clone)]
-pub struct EmbedSection {
+struct Section {
     title: String,
     content: String,
 }
@@ -19,7 +19,7 @@ pub struct EmbedSection {
 impl Embed {
     pub fn to_discord_embed(&self) -> CreateEmbed {
         let mut embed = CreateEmbed::default();
-        let fields = self.sections.iter().map(EmbedSection::to_field);
+        let fields = self.sections.iter().map(Section::to_field);
 
         embed
             .title(self.title.clone())
@@ -38,7 +38,7 @@ impl Embed {
     }
 }
 
-impl EmbedSection {
+impl Section {
     pub fn to_field(&self) -> (String, String, bool) {
         (self.title.clone(), self.content.clone(), false)
     }

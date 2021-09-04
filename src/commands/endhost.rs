@@ -106,19 +106,19 @@ impl CommandHandler for EndHost {
 }
 
 #[derive(Clone, Copy)]
-pub struct EndHostButtonYes;
+pub struct ButtonYes;
 
 #[derive(Clone, Copy)]
-pub struct EndHostButtonNo;
+pub struct ButtonNo;
 
-impl InteractionHandler for EndHostButtonYes {
+impl InteractionHandler for ButtonYes {
     fn name(&self) -> &'static str {
         "endhost-yes"
     }
 }
 
 #[async_trait]
-impl MessageHandler for EndHostButtonYes {
+impl MessageHandler for ButtonYes {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         if !ctx.is_session_present().await {
             interaction_respond_with_private_message(
@@ -211,14 +211,14 @@ impl MessageHandler for EndHostButtonYes {
     }
 }
 
-impl InteractionHandler for EndHostButtonNo {
+impl InteractionHandler for ButtonNo {
     fn name(&self) -> &'static str {
         "endhost-no"
     }
 }
 
 #[async_trait]
-impl MessageHandler for EndHostButtonNo {
+impl MessageHandler for ButtonNo {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         let action = if ctx.is_session_started().await {
             "ended"

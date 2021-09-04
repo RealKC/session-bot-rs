@@ -16,10 +16,9 @@ use tracing::{error, info, warn};
 
 use crate::{
     commands::{
-        buttons::{ButtonMaybe, ButtonNo, ButtonYes},
-        endhost::{EndHost, EndHostButtonNo, EndHostButtonYes},
+        endhost::{self, EndHost},
         help::{Help, HelpPageHandler},
-        hostgame::HostGame,
+        hostgame::{self, HostGame},
         interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
         ip::Ip,
         prelude::*,
@@ -76,11 +75,11 @@ impl EventHandler for ClientHandler {
         register_guild_command(&ctx, guild_id, Ip).await;
         register_guild_command(&ctx, guild_id, Status).await;
 
-        register_handler(&ctx, Handler::Message(Arc::new(ButtonMaybe))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(ButtonNo))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(ButtonYes))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(EndHostButtonNo))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(EndHostButtonYes))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonYes))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonMaybe))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonNo))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonYes))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonNo))).await;
         register_handler(&ctx, Handler::Message(Arc::new(HelpPageHandler))).await;
 
         update_bot_status(&ctx).await;

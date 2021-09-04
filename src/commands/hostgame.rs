@@ -111,10 +111,13 @@ async fn start_session(
 
         ChannelId(channel_id)
             .send_message(&ctx.http, |message| {
-                message.set_embed(embed).content(format!(
-                    "<@&{}> Session starting soon!",
-                    RoleId(game.role_id).to_string()
-                ))
+                message
+                    .set_embed(embed)
+                    .content(format!(
+                        "<@&{}> Session starting soon!",
+                        RoleId(game.role_id).to_string()
+                    ))
+                    .allowed_mentions(|mentions| mentions.roles(vec![game.role_id]))
             })
             .await
             .expect("Error sending message to channel");
@@ -226,6 +229,7 @@ async fn send_session_message(
                             time.timestamp(),
                             description
                         ))
+                        .allowed_mentions(|mentions| mentions.roles(vec![role_id]))
                         .components(|component| {
                             component.create_action_row(|row| {
                                 row.create_button(|button| {

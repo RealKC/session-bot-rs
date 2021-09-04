@@ -53,7 +53,9 @@ impl EventHandler for ClientHandler {
                     warn!("Message handler not found in map: {}", name);
                 }
             }
-            _ => error!("Error: interaction kind not recognized: {:?}", interaction),
+            Interaction::Ping(_) => {
+                error!("Error: interaction kind not supported: {:?}", interaction)
+            }
         }
     }
 

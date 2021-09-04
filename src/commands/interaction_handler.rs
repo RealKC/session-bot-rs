@@ -60,7 +60,7 @@ where
         )
     });
 
-    register_handler(&ctx, Handler::Command(Arc::new(handler))).await;
+    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
 }
 
 pub async fn register_guild_command<T>(ctx: &Context, guild_id: GuildId, handler: T)
@@ -79,7 +79,7 @@ where
             .as_str(),
         );
 
-    register_handler(&ctx, Handler::Command(Arc::new(handler))).await;
+    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
 }
 
 pub async fn register_handler(ctx: &Context, handler: Handler) {

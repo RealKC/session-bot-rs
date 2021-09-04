@@ -11,9 +11,9 @@ use crate::config::Game;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UserState {
-    WillJoin,
-    MayJoin,
-    WontJoin,
+    Will,
+    May,
+    Wont,
 }
 
 pub struct Session {

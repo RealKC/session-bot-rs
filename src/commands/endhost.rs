@@ -33,11 +33,11 @@ fn get_action_row() -> CreateActionRow {
                 .label("No")
                 .custom_id("endhost-no")
         })
-        .to_owned()
+        .clone()
 }
 
 async fn can_cancel_session(ctx: &Context, user_id: UserId) -> bool {
-    let host = ctx.session().await.read().await.host.clone();
+    let host = ctx.session().await.read().await.host;
     user_id == host || ctx.config().await.admins.contains(&user_id)
 }
 
@@ -170,7 +170,7 @@ impl MessageHandler for EndHostButtonYes {
 
         let content = if !ctx.is_session_started().await {
             let user_pings =
-                users_with_state(&ctx.session().await.read().await.users, UserState::WillJoin);
+                users_with_state(&ctx.session().await.read().await.users, UserState::Will);
             if user_pings.1 == 0 {
                 "".to_string()
             } else {

@@ -41,7 +41,7 @@ impl MessageHandler for ButtonYes {
             .write()
             .await
             .users
-            .insert(user_id, crate::session::UserState::WillJoin);
+            .insert(user_id, crate::session::UserState::Will);
     }
 }
 
@@ -68,7 +68,7 @@ impl MessageHandler for ButtonMaybe {
             .write()
             .await
             .users
-            .insert(user_id, crate::session::UserState::MayJoin);
+            .insert(user_id, crate::session::UserState::May);
     }
 }
 
@@ -94,6 +94,6 @@ impl MessageHandler for ButtonNo {
             .write()
             .await
             .users
-            .insert(user_id, crate::session::UserState::WontJoin);
+            .insert(user_id, crate::session::UserState::Wont);
     }
 }

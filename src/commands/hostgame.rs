@@ -50,7 +50,7 @@ async fn ping_all_not_in_vc(ctx: &Context, channel_id: ChannelId) {
 
     let pings = user_map
         .iter()
-        .filter(|(u, s)| **s == UserState::WillJoin && !members.iter().any(|m| m.user.id == **u))
+        .filter(|(u, s)| **s == UserState::Will && !members.iter().any(|m| m.user.id == **u))
         .fold(String::new(), |lhs, (rhs, _)| {
             lhs + format!("<@{}> ", rhs).as_str()
         });
@@ -105,7 +105,7 @@ async fn start_session(
         tokio::time::sleep(
             ten_minutes_before
                 .to_std()
-                .unwrap_or(std::time::Duration::from_secs(60)),
+                .unwrap_or_else(|_| std::time::Duration::from_secs(60)),
         )
         .await;
 
@@ -140,7 +140,7 @@ async fn start_session(
             .await
             .users
             .iter()
-            .filter(|(_, s)| **s == UserState::WillJoin)
+            .filter(|(_, s)| **s == UserState::Will)
             .count();
 
         let embed = get_status_embed(&ctx, guild_id).await;
@@ -185,7 +185,7 @@ async fn start_session(
 
     let message = send_session_message(
         ctx.clone(),
-        &interaction,
+        interaction,
         session_time,
         description,
         game.role_id,
@@ -202,7 +202,7 @@ async fn start_session(
             message.id,
             interaction.user.id,
         ))));
-    update_bot_status(&ctx).await;
+    update_bot_status(ctx).await;
 
     true
 }

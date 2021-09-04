@@ -25,7 +25,7 @@ impl HelpPage {
             .label(&self.dropdown_title)
             .description(&self.dropdown_description)
             .value(index)
-            .to_owned()
+            .clone()
     }
 }
 
@@ -44,7 +44,7 @@ async fn get_action_row(ctx: &Context) -> CreateActionRow {
             menu.custom_id("help-pages")
                 .options(|options| options.set_options(option_vec))
         })
-        .to_owned()
+        .clone()
 }
 
 #[derive(Clone, Copy)]

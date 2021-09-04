@@ -62,11 +62,11 @@ pub async fn get_status_embed(ctx: &Context, guild_id: GuildId) -> CreateEmbed {
     let host_nick = host
         .nick_in(&ctx.http, guild_id)
         .await
-        .unwrap_or(host.name.clone());
+        .unwrap_or_else(|| host.name.clone());
 
-    let (will_join, will_join_amount) = users_with_state(&user_map, UserState::WillJoin);
-    let (may_join, may_join_amount) = users_with_state(&user_map, UserState::MayJoin);
-    let (wont_join, wont_join_amount) = users_with_state(&user_map, UserState::WontJoin);
+    let (will_join, will_join_amount) = users_with_state(&user_map, UserState::Will);
+    let (may_join, may_join_amount) = users_with_state(&user_map, UserState::May);
+    let (wont_join, wont_join_amount) = users_with_state(&user_map, UserState::Wont);
 
     let time = session.read().await.time;
     let time_left = time - Local::now();
@@ -81,13 +81,13 @@ pub async fn get_status_embed(ctx: &Context, guild_id: GuildId) -> CreateEmbed {
                 format!(
                     "{} hour{} and ",
                     hours_left,
-                    if hours_left != 1 { "s" } else { "" }
+                    if hours_left == 1 { "" } else { "s" }
                 )
             } else {
                 "".to_string()
             },
             minutes_left,
-            if minutes_left != 1 { "s" } else { "" },
+            if minutes_left == 1 { "" } else { "s" },
             time.timestamp()
         )
     };
@@ -95,7 +95,7 @@ pub async fn get_status_embed(ctx: &Context, guild_id: GuildId) -> CreateEmbed {
     CreateEmbed::default()
         .title("Session Status")
         .colour(Colour::from_rgb(244, 173, 249))
-        .author(|author| author.name(host_nick).icon_url(host.face().clone()))
+        .author(|author| author.name(host_nick).icon_url(host.face()))
         .field(
             format!("People who are sure: {}", will_join_amount),
             will_join,
@@ -112,7 +112,7 @@ pub async fn get_status_embed(ctx: &Context, guild_id: GuildId) -> CreateEmbed {
             false,
         )
         .field("Time left until start", time_str, false)
-        .to_owned()
+        .clone()
 }
 
 #[async_trait]

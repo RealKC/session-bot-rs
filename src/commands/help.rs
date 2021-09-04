@@ -97,6 +97,8 @@ impl InteractionHandler for HelpPageHandler {
 #[async_trait]
 impl MessageHandler for HelpPageHandler {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
+        // The conversion should always be valid unless a request is forged via modifications
+        // This is due to the fact .values[0] will always be one set via HelpPage::get_option
         let index = interaction.clone().data.values[0]
             .parse::<usize>()
             .expect("Error parsing help-page data to usize");

@@ -53,10 +53,11 @@ where
         handler.create_command(f)
     })
     .await
-    .unwrap_or_else(|_| {
+    .unwrap_or_else(|why| {
         panic!(
-            "There was an error creating global {} command",
-            handler.name()
+            "There was an error creating global {} command: {}",
+            handler.name(),
+            why
         )
     });
 

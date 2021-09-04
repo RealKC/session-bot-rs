@@ -32,6 +32,8 @@ impl InteractionHandler for Status {
 }
 
 pub fn users_with_state(user_map: &HashMap<UserId, UserState>, state: UserState) -> (String, u64) {
+    // Gives a string which pings all users with the given state, and the number of users
+    // Ex: ("<@1>, <@2>, <@3>, ", 3)
     let mut ans = user_map
         .iter()
         .filter(|(_, s)| **s == state)
@@ -42,6 +44,7 @@ pub fn users_with_state(user_map: &HashMap<UserId, UserState>, state: UserState)
     if ans.0.is_empty() {
         ("Nobody".to_string(), 0)
     } else {
+        // We need to pop two elements representing the comma and the space left over from folding the last element
         ans.0.pop();
         ans.0.pop();
         ans

@@ -45,7 +45,7 @@ impl TypeMapKey for InteractionMap {
     type Value = Arc<RwLock<HashMap<&'static str, Handler>>>;
 }
 
-pub async fn register_global_command<T>(ctx: Context, handler: T)
+pub async fn register_global_command<T>(ctx: &Context, handler: T)
 where
     T: CommandHandler + Send + Sync + Copy + 'static,
 {
@@ -60,10 +60,10 @@ where
         )
     });
 
-    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
+    register_handler(&ctx, Handler::Command(Arc::new(handler))).await;
 }
 
-pub async fn register_guild_command<T>(ctx: Context, guild_id: u64, handler: T)
+pub async fn register_guild_command<T>(ctx: &Context, guild_id: u64, handler: T)
 where
     T: CommandHandler + Send + Sync + Copy + 'static,
 {
@@ -79,10 +79,10 @@ where
             .as_str(),
         );
 
-    register_handler(ctx, Handler::Command(Arc::new(handler))).await;
+    register_handler(&ctx, Handler::Command(Arc::new(handler))).await;
 }
 
-pub async fn register_handler(ctx: Context, handler: Handler) {
+pub async fn register_handler(ctx: &Context, handler: Handler) {
     let name = match &handler {
         Handler::Command(command) => command.name(),
         Handler::Message(message) => message.name(),

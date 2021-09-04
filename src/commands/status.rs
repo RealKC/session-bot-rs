@@ -122,7 +122,7 @@ impl CommandHandler for Status {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),
-                "No session currently running",
+                "No session currently running!",
             )
             .await;
             return;

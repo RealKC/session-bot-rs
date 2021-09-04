@@ -57,7 +57,7 @@ impl CommandHandler for EndHost {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),
-                "No session running!",
+                "No session currently running!",
             )
             .await;
             return;

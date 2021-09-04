@@ -1,0 +1,85 @@
+# Rename the file to config.toml in order for it to work
+# Editing this config will make the bot take effect a few seconds after saving
+application_id = 12345
+discord_token = "abcde"
+guild_id = 313131313131313232       # Guild where you intend to use the bot in
+vc_channel = 123456789012345678     # Voice Chat Channel where users should be connected to
+
+
+default_time = "20:00"              # Format is HH:MMs
+idle_text = "No session right now!" # Displayed when no session is currently running
+timezone_text = "UTC-3"             # Only has effect on the status, doesnt change the times the bot takes
+
+
+admins = [                          # This is the list of admins, that is, users who can always
+    108523421708773376,             # use /endhost, regardless of whether they are the host or not
+    212412449709958145,
+]
+
+
+[ip_embed]                          # This is the embed which will be shown when doing /ip
+title = "Server IPs"                # The image is optional, and should point to an URL
+description = "My favourite games :D"
+colour = 0xF4ADF9
+image = "https://upload.wikimedia.org/wikipedia/en/9/9a/Among_Us_cover_art.jpg"
+
+[[ip_embed.sections]]               # Each section defines a title - content pair,
+title = "Minecraft"                 # and are shown in the order you declare them
+content = "123.444.111.313"         # To declare a new section, just do [[ip_embed.sections]]
+
+[[ip_embed.sections]]
+title = "Among us"
+content = "A32BX1"
+
+
+[default_help]                      # This is the page which will be shown 
+title = "Welcome to the help pages!"
+description = "this is a work in progress uwu"
+colour = 0xF4ADF9
+
+[[default_help.sections]]
+title = "HAI"
+content = "ITS SO QUIET IN HERE"
+
+
+[[help]]                            # Each of the [[help]] defines a help page for the dropdown menu
+dropdown_title = "First help page"  # They contain a title, description, and an embed, similar to [ip_embed] and [default_help]
+dropdown_description = "Test help page description"
+
+[help.embed]
+title = "This is a title"
+description = "This is a description"
+colour = 0xF4ADF9
+
+[[help.embed.sections]]
+title = "This is a section title"
+content = "This is a section content"
+
+
+[[help]]
+dropdown_title = "Second help page"
+dropdown_description = "Test help page descriptionV2"
+
+[help.embed]
+title = "Help but better"
+description = "It can have entirely different text"
+colour = 0xF4ADF9
+
+[[help.embed.sections]]
+title = "section 1"
+content = "content 1"
+
+[[help.embed.sections]]
+title = "section 2"
+content = "content 2"
+
+
+[[games]]                           # All games are defined with [[games]]
+name = "debug"                      # After this, you add a name, the text channel where you
+channel_id = 881634697069858836     # intend to invoke the bot from, and the role
+role_id = 881898593231982622        # associated with it
+
+[[games]]                           # Using another [[games]] defines a new game
+name = "Among Us"
+channel_id = 775765356257083434
+role_id = 776530476566315068

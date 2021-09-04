@@ -275,7 +275,7 @@ impl CommandHandler for HostGame {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),
-                "Error creating session: Session already running",
+                "There is already a session running!",
             )
             .await;
             return;
@@ -309,7 +309,7 @@ impl CommandHandler for HostGame {
             interaction_respond_with_private_message(
                 ctx,
                 Interaction::ApplicationCommand(interaction),
-                "Error creating session: No game registered to this channel",
+                "This is not a game channel!",
             )
             .await;
         }

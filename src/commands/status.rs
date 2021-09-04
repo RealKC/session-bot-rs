@@ -68,25 +68,27 @@ pub async fn get_status_embed(ctx: Context, guild_id: u64) -> CreateEmbed {
     let (may_join, may_join_amount) = users_with_state(&user_map, UserState::MayJoin);
     let (wont_join, wont_join_amount) = users_with_state(&user_map, UserState::WontJoin);
 
-    let time_left = session.read().await.time - Local::now();
+    let time = session.read().await.time;
+    let time_left = time - Local::now();
     let time_str = if time_left < Duration::zero() {
         "Already started!".to_string()
     } else {
         let hours_left = time_left.num_hours() % 24;
         let minutes_left = time_left.num_minutes() % 60;
         format!(
-            "{}{} minute{}",
+            "{}{} minute{} | <t:{}>",
             if hours_left > 0 {
                 format!(
                     "{} hour{} and ",
                     hours_left,
-                    if hours_left > 1 { "s" } else { "" }
+                    if hours_left != 1 { "s" } else { "" }
                 )
             } else {
                 "".to_string()
             },
             minutes_left,
-            if minutes_left > 0 { "s" } else { "" }
+            if minutes_left != 1 { "s" } else { "" },
+            time.timestamp()
         )
     };
 

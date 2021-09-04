@@ -1,3 +1,4 @@
+use chrono::Timelike;
 pub use serenity::{
     client::Context,
     model::interactions::{
@@ -6,6 +7,8 @@ pub use serenity::{
     model::prelude::*,
 };
 pub use tracing::{error, info, warn};
+
+use crate::context_ext::ContextExt;
 
 pub async fn interaction_respond_with_private_message(
     ctx: Context,
@@ -38,5 +41,37 @@ pub async fn interaction_respond_with_private_message(
             .await
             .unwrap_or_else(|why| warn!("Error responding to interaction: {}", why)),
         Interaction::Ping(_) => warn!("Cant respond to ping interaction!"),
+    }
+}
+
+pub async fn update_bot_status(ctx: &Context) {
+    if ctx.is_session_started().await {
+        let game = ctx.session().await.read().await.game.name.clone();
+        let content = format!("{} | Now!", game);
+        ctx.set_presence(Some(Activity::playing(content)), OnlineStatus::DoNotDisturb)
+            .await;
+    } else if ctx.is_session_present().await {
+        let game = ctx.session().await.read().await.game.name.clone();
+        let time = ctx.session().await.read().await.time.time();
+        let timezone = ctx.config().await.timezone_text;
+
+        let hour = if time.hour() < 10 {
+            format!("0{}", time.hour())
+        } else {
+            time.hour().to_string()
+        };
+        let minute = if time.minute() < 10 {
+            format!("0{}", time.minute())
+        } else {
+            time.minute().to_string()
+        };
+
+        let content = format!("{} | {}:{} {}", game, hour, minute, timezone);
+        ctx.set_presence(Some(Activity::playing(content)), OnlineStatus::Idle)
+            .await;
+    } else {
+        let content = ctx.config().await.idle_text;
+        ctx.set_presence(Some(Activity::playing(content)), OnlineStatus::Online)
+            .await;
     }
 }

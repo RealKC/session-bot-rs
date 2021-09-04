@@ -195,6 +195,7 @@ impl MessageHandler for EndHostButtonYes {
 
         ctx.session().await.write().await.handle.abort();
         ctx.data.write().await.remove::<Session>();
+        update_bot_status(&ctx).await;
 
         interaction
             .create_interaction_response(&ctx.http, |response| {

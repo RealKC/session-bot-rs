@@ -67,17 +67,21 @@ impl EventHandler for ClientHandler {
             .insert::<InteractionMap>(Arc::new(RwLock::new(map)));
 
         let guild_id = ctx.config().await.guild_id;
+
         register_guild_command(ctx.clone(), guild_id, EndHost).await;
         register_guild_command(ctx.clone(), guild_id, Help).await;
         register_guild_command(ctx.clone(), guild_id, HostGame).await;
         register_guild_command(ctx.clone(), guild_id, Ip).await;
         register_guild_command(ctx.clone(), guild_id, Status).await;
+
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonMaybe))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonNo))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(ButtonYes))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(EndHostButtonNo))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(EndHostButtonYes))).await;
         register_handler(ctx.clone(), Handler::Message(Arc::new(HelpPageHandler))).await;
+
+        update_bot_status(&ctx).await;
     }
 }
 

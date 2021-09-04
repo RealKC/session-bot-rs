@@ -16,6 +16,8 @@ pub struct Config {
     pub guild_id: u64,
     pub vc_channel: u64,
     pub default_time: String,
+    pub idle_text: String,
+    pub timezone_text: String,
     pub ip_embed: Embed,
     pub default_help: Embed,
     pub help: Vec<HelpPage>,

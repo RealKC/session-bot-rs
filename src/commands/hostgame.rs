@@ -7,7 +7,7 @@ use crate::{
 
 use super::{
     interaction_handler::{CommandHandler, InteractionHandler},
-    prelude::interaction_respond_with_private_message,
+    prelude::{interaction_respond_with_private_message, update_bot_status},
     status::get_status_embed,
 };
 use chrono::{DateTime, Local, NaiveDateTime, NaiveTime, TimeZone};
@@ -154,6 +154,8 @@ async fn start_session(
             .await
             .expect("Error sending message to channel");
 
+        update_bot_status(&ctx).await;
+
         tokio::time::sleep(std::time::Duration::from_secs(60 * 10)).await;
         // ping users who said yes but not in VC
         ping_all_not_in_vc(ctx, channel_id).await;
@@ -194,6 +196,8 @@ async fn start_session(
             message.id,
             interaction.user.id,
         ))));
+    update_bot_status(&ctx).await;
+
     true
 }
 

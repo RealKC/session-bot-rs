@@ -12,7 +12,7 @@ use serenity::{
     builder::CreateEmbed,
     client::Context,
     model::{
-        id::UserId,
+        id::{GuildId, UserId},
         interactions::{
             application_command::ApplicationCommandInteraction, Interaction,
             InteractionApplicationCommandCallbackDataFlags, InteractionResponseType,
@@ -48,7 +48,7 @@ pub fn users_with_state(user_map: &HashMap<UserId, UserState>, state: UserState)
     }
 }
 
-pub async fn get_status_embed(ctx: Context, guild_id: u64) -> CreateEmbed {
+pub async fn get_status_embed(ctx: &Context, guild_id: GuildId) -> CreateEmbed {
     let session = ctx.session().await;
     let user_map = session.read().await.users.clone();
     let host = session
@@ -120,19 +120,15 @@ impl CommandHandler for Status {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         if !ctx.is_session_present().await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::ApplicationCommand(interaction),
+                &ctx,
+                &Interaction::ApplicationCommand(interaction),
                 "No session currently running!",
             )
             .await;
             return;
         }
 
-        let embed = get_status_embed(
-            ctx.clone(),
-            interaction.guild_id.unwrap_or_default().as_u64().clone(),
-        )
-        .await;
+        let embed = get_status_embed(&ctx, interaction.guild_id.unwrap_or_default()).await;
 
         interaction
             .create_interaction_response(&ctx.http, |response| {

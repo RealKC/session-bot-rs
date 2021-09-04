@@ -63,11 +63,11 @@ where
     register_handler(&ctx, Handler::Command(Arc::new(handler))).await;
 }
 
-pub async fn register_guild_command<T>(ctx: &Context, guild_id: u64, handler: T)
+pub async fn register_guild_command<T>(ctx: &Context, guild_id: GuildId, handler: T)
 where
     T: CommandHandler + Send + Sync + Copy + 'static,
 {
-    GuildId(guild_id)
+    guild_id
         .create_application_command(&ctx.http, |f| handler.create_command(f))
         .await
         .expect(

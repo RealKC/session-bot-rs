@@ -10,7 +10,7 @@ use serenity::{
     builder::CreateActionRow,
     client::Context,
     model::{
-        id::{ChannelId, UserId},
+        id::UserId,
         interactions::{
             application_command::ApplicationCommandInteraction,
             message_component::{ButtonStyle, MessageComponentInteraction},
@@ -55,19 +55,19 @@ impl CommandHandler for EndHost {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         if !ctx.is_session_present().await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::ApplicationCommand(interaction),
+                &ctx,
+                &Interaction::ApplicationCommand(interaction),
                 "No session currently running!",
             )
             .await;
             return;
         }
 
-        let user_id = interaction.user.id.clone();
+        let user_id = interaction.user.id;
         if !can_cancel_session(&ctx, user_id).await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::ApplicationCommand(interaction),
+                &ctx,
+                &Interaction::ApplicationCommand(interaction),
                 "You don't have permissions to cancel this session!",
             )
             .await;
@@ -122,8 +122,8 @@ impl MessageHandler for EndHostButtonYes {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         if !ctx.is_session_present().await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::MessageComponent(interaction),
+                &ctx,
+                &Interaction::MessageComponent(interaction),
                 "No session currently running!",
             )
             .await;
@@ -137,32 +137,31 @@ impl MessageHandler for EndHostButtonYes {
         };
         if !can_cancel_session(&ctx, interaction.user.id).await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::MessageComponent(interaction),
+                &ctx,
+                &Interaction::MessageComponent(interaction),
                 format!("You don't have permission to {} this session!", action).as_str(),
             )
             .await;
             return;
         }
 
-        let message_id = ctx
-            .session()
-            .await
-            .read()
-            .await
-            .message_id
-            .as_u64()
-            .to_owned();
+        let message_id = ctx.session().await.read().await.message_id;
         let game = ctx.session().await.read().await.game.clone();
         let channel_id = game.channel_id;
 
-        if let Ok(message) = ctx.http.get_message(channel_id, message_id).await.as_mut() {
+        if let Ok(message) = ctx
+            .http
+            .get_message(channel_id.0, message_id.0)
+            .await
+            .as_mut()
+        {
             message
                 .edit(&ctx, |message| {
                     message.components(|components| components.set_action_rows(vec![]))
                 })
                 .await
                 .unwrap_or_else(|why| warn!("Error editing message: {}", why));
+
             message
                 .unpin(&ctx)
                 .await
@@ -181,7 +180,7 @@ impl MessageHandler for EndHostButtonYes {
             "".to_string()
         };
 
-        if let Err(why) = ChannelId(channel_id)
+        if let Err(why) = channel_id
             .send_message(&ctx.http, |message| {
                 message.content(format!(
                     "{}{} Session has been {}!",

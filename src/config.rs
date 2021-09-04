@@ -2,7 +2,7 @@ use std::{fs::File, io::Read, path::Path, sync::Arc};
 
 use serde::Deserialize;
 use serenity::{
-    model::id::UserId,
+    model::id::{ApplicationId, ChannelId, GuildId, RoleId, UserId},
     prelude::{RwLock, TypeMapKey},
 };
 use tracing::log::error;
@@ -11,10 +11,10 @@ use crate::{commands::help::HelpPage, embed::Embed};
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
-    pub application_id: u64,
+    pub application_id: ApplicationId,
     pub discord_token: String,
-    pub guild_id: u64,
-    pub vc_channel: u64,
+    pub guild_id: GuildId,
+    pub vc_channel: ChannelId,
     pub default_time: String,
     pub idle_text: String,
     pub timezone_text: String,
@@ -28,8 +28,8 @@ pub struct Config {
 #[derive(Deserialize, Clone)]
 pub struct Game {
     pub name: String,
-    pub channel_id: u64,
-    pub role_id: u64,
+    pub channel_id: ChannelId,
+    pub role_id: RoleId,
 }
 
 impl TypeMapKey for Config {

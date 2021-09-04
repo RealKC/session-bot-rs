@@ -91,11 +91,10 @@ async fn main() {
 
     let config = Config::read_from(Path::new("config.toml")).expect("Could not open config.toml");
     let token = config.discord_token.clone();
-    let application_id: u64 = config.application_id;
 
     let mut client = Client::builder(token)
         .event_handler(ClientHandler)
-        .application_id(application_id)
+        .application_id(config.application_id.0)
         .await
         .expect("Error creating client");
     let data = client.data.clone();

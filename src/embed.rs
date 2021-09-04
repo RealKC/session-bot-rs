@@ -21,21 +21,18 @@ impl Embed {
         let mut embed = CreateEmbed::default();
         let fields = self.sections.iter().map(EmbedSection::to_field);
 
-        embed = embed
+        embed
             .title(self.title.clone())
             .colour(self.colour)
-            .fields(fields)
-            .to_owned();
+            .fields(fields);
 
-        embed = match &self.description {
-            None => embed,
-            Some(s) => embed.description(s).to_owned(),
-        };
+        if let Some(s) = &self.description {
+            embed.description(s);
+        }
 
-        embed = match &self.image {
-            None => embed,
-            Some(s) => embed.image(s).to_owned(),
-        };
+        if let Some(s) = &self.image {
+            embed.image(s);
+        }
 
         embed
     }

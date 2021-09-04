@@ -30,8 +30,8 @@ impl MessageHandler for ButtonYes {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         let user_id = interaction.user.id;
         interaction_respond_with_private_message(
-            ctx.clone(),
-            Interaction::MessageComponent(interaction),
+            &ctx,
+            &Interaction::MessageComponent(interaction),
             format!("Thanks for saying yes, <@{}>", user_id).as_str(),
         )
         .await;
@@ -57,8 +57,8 @@ impl MessageHandler for ButtonMaybe {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         let user_id = interaction.user.id;
         interaction_respond_with_private_message(
-            ctx.clone(),
-            Interaction::MessageComponent(interaction),
+            &ctx,
+            &Interaction::MessageComponent(interaction),
             format!("Thanks for saying maybe, <@{}>", user_id).as_str(),
         )
         .await;
@@ -83,8 +83,8 @@ impl MessageHandler for ButtonNo {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         let user_id = interaction.user.id;
         interaction_respond_with_private_message(
-            ctx.clone(),
-            Interaction::MessageComponent(interaction),
+            &ctx,
+            &Interaction::MessageComponent(interaction),
             format!("Thanks for saying no, <@{}>", user_id).as_str(),
         )
         .await;

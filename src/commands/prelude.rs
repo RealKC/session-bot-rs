@@ -11,8 +11,8 @@ pub use tracing::{error, info, warn};
 use crate::context_ext::ContextExt;
 
 pub async fn interaction_respond_with_private_message(
-    ctx: Context,
-    interaction: Interaction,
+    ctx: &Context,
+    interaction: &Interaction,
     content: &str,
 ) {
     match interaction {

@@ -33,15 +33,18 @@ use tracing::warn;
 #[derive(Clone, Copy)]
 pub struct HostGame;
 
-async fn ping_all_not_in_vc(ctx: Context, channel_id: u64) {
+async fn ping_all_not_in_vc(ctx: &Context, channel_id: ChannelId) {
     let user_map = ctx.session().await.read().await.users.clone();
-    let members = ChannelId(ctx.config().await.vc_channel)
+    let members = ctx
+        .config()
+        .await
+        .vc_channel
         .to_channel(&ctx.http)
         .await
         .expect("Could not convert to Channel")
         .guild()
         .expect("Could not convert to GuildChannel")
-        .members(ctx.cache)
+        .members(&ctx.cache)
         .await
         .expect("Could not retrieve Member list");
 
@@ -57,7 +60,7 @@ async fn ping_all_not_in_vc(ctx: Context, channel_id: u64) {
     }
 
     let content = format!("{}you're late, get in the VC!", pings);
-    if let Err(why) = ChannelId(channel_id)
+    if let Err(why) = channel_id
         .send_message(&ctx.http, |message| message.content(content))
         .await
     {
@@ -66,13 +69,13 @@ async fn ping_all_not_in_vc(ctx: Context, channel_id: u64) {
 }
 
 async fn start_session(
-    ctx: Context,
-    interaction: ApplicationCommandInteraction,
+    ctx: &Context,
+    interaction: &ApplicationCommandInteraction,
     time: &str,
     description: &str,
 ) -> bool {
-    let channel_id = interaction.channel_id.as_u64().to_owned();
-    let guild_id = interaction.guild_id.unwrap_or_default().as_u64().to_owned();
+    let channel_id = interaction.channel_id;
+    let guild_id = interaction.guild_id.unwrap_or_default();
 
     let session_time =
         NaiveTime::parse_from_str(time, "%H:%M").expect("Error parsing default time to string");
@@ -107,15 +110,15 @@ async fn start_session(
         .await;
 
         let game = ctx.session().await.read().await.game.clone();
-        let embed = get_status_embed(ctx.clone(), guild_id).await;
+        let embed = get_status_embed(&ctx, guild_id).await;
 
-        ChannelId(channel_id)
+        channel_id
             .send_message(&ctx.http, |message| {
                 message
                     .set_embed(embed)
                     .content(format!(
                         "<@&{}> Session starting soon!",
-                        RoleId(game.role_id).to_string()
+                        game.role_id.to_string()
                     ))
                     .allowed_mentions(|mentions| mentions.roles(vec![game.role_id]))
             })
@@ -140,14 +143,14 @@ async fn start_session(
             .filter(|(_, s)| **s == UserState::WillJoin)
             .count();
 
-        let embed = get_status_embed(ctx.clone(), guild_id).await;
+        let embed = get_status_embed(&ctx, guild_id).await;
         let person_or_people = if member_amount == 1 {
             "person"
         } else {
             "people"
         };
 
-        ChannelId(channel_id)
+        channel_id
             .send_message(&ctx.http, |message| {
                 message.set_embed(embed).content(format!(
                     "{} Session has started! {} {} said Yes!",
@@ -161,7 +164,7 @@ async fn start_session(
 
         tokio::time::sleep(std::time::Duration::from_secs(60 * 10)).await;
         // ping users who said yes but not in VC
-        ping_all_not_in_vc(ctx, channel_id).await;
+        ping_all_not_in_vc(&ctx, channel_id).await;
     });
 
     let game = match ctx
@@ -209,7 +212,7 @@ async fn send_session_message(
     interaction: &ApplicationCommandInteraction,
     time: DateTime<Local>,
     description: &str,
-    role_id: u64,
+    role_id: RoleId,
 ) -> Message {
     let description = if description.is_empty() {
         description.to_string()
@@ -277,8 +280,8 @@ impl CommandHandler for HostGame {
     async fn invoke(&self, ctx: Context, interaction: ApplicationCommandInteraction) {
         if ctx.is_session_present().await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::ApplicationCommand(interaction),
+                &ctx,
+                &Interaction::ApplicationCommand(interaction),
                 "There is already a session running!",
             )
             .await;
@@ -309,10 +312,10 @@ impl CommandHandler for HostGame {
             }
         }
 
-        if !start_session(ctx.clone(), interaction.clone(), &time, &description).await {
+        if !start_session(&ctx, &interaction, &time, &description).await {
             interaction_respond_with_private_message(
-                ctx,
-                Interaction::ApplicationCommand(interaction),
+                &ctx,
+                &Interaction::ApplicationCommand(interaction),
                 "This is not a game channel!",
             )
             .await;

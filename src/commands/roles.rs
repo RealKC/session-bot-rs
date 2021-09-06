@@ -95,16 +95,16 @@ impl CommandHandler for RolesCommand {
 }
 
 #[derive(Clone, Copy)]
-pub struct RolesCommandHandler;
+pub struct RolesMenuHandler;
 
-impl InteractionHandler for RolesCommandHandler {
+impl InteractionHandler for RolesMenuHandler {
     fn name(&self) -> &'static str {
         "roles-dropdown"
     }
 }
 
 #[async_trait]
-impl MessageHandler for RolesCommandHandler {
+impl MessageHandler for RolesMenuHandler {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         // The conversion should always be valid unless a request is forged via modifications
         // This is due to the fact .values[0] will always be a value set via get_action_row()

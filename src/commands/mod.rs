@@ -1,3 +1,4 @@
+pub mod allroles;
 pub mod endhost;
 pub mod help;
 pub mod hostgame;

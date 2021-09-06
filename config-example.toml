@@ -4,7 +4,8 @@ application_id = 12345
 discord_token = "abcde"
 guild_id = 313131313131313232       # Guild where you intend to use the bot in
 vc_channel = 123456789012345678     # Voice Chat Channel where users should be connected to
-
+default_user_role = 884416209414676531 
+                                    # Role given to a new, verified user, via /allroles 
 
 default_time = "20:00"              # Format is HH:MMs
 idle_text = "No session right now!" # Displayed when no session is currently running

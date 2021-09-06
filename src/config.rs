@@ -15,6 +15,7 @@ pub struct Config {
     pub discord_token: String,
     pub guild_id: GuildId,
     pub vc_channel: ChannelId,
+    pub default_user_role: Option<RoleId>,
     pub default_time: String,
     pub idle_text: String,
     pub timezone_text: String,

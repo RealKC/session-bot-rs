@@ -83,3 +83,7 @@ role_id = 881898593231982622        # associated with it
 name = "Among Us"
 channel_id = 775765356257083434
 role_id = 776530476566315068
+
+[[games]]                           # You can make toggleable roles without needing to add a channel_id
+name = "another cool role"          # By not adding the field
+role_id = 883466517373669426

@@ -22,6 +22,7 @@ use crate::{
         hostgame::{self, HostGame},
         ip::Ip,
         prelude::*,
+        roles::{RolesCommand, RolesCommandHandler},
         status::Status,
     },
     config::Config,
@@ -75,6 +76,7 @@ impl EventHandler for ClientHandler {
         register_guild_command(&ctx, guild_id, HostGame).await;
         register_guild_command(&ctx, guild_id, Ip).await;
         register_guild_command(&ctx, guild_id, Status).await;
+        register_guild_command(&ctx, guild_id, RolesCommand).await;
 
         register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonYes))).await;
         register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonMaybe))).await;
@@ -82,8 +84,10 @@ impl EventHandler for ClientHandler {
         register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonYes))).await;
         register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonNo))).await;
         register_handler(&ctx, Handler::Message(Arc::new(HelpPageHandler))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(RolesCommandHandler))).await;
 
         update_bot_status(&ctx).await;
+        info!("All commands have been added successfully!");
     }
 }
 

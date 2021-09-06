@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
 use crate::{
-    commands::prelude::interaction_respond_with_private_message, context_ext::ContextExt,
+    commands::prelude::interaction_respond_with_private_message,
+    context_ext::ContextExt,
+    interaction_handler::{CommandHandler, InteractionHandler},
     session::UserState,
 };
 
-use super::interaction_handler::{CommandHandler, InteractionHandler};
 use chrono::{Duration, Local};
 use serenity::{
     async_trait,

@@ -4,8 +4,8 @@ use chrono::Local;
 use serenity::{async_trait, client::Context, prelude::RwLock};
 
 use crate::{
-    commands::interaction_handler::{Handler, InteractionMap},
     config::Config,
+    interaction_handler::{Handler, InteractionMap},
     session::Session,
 };
 

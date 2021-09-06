@@ -28,7 +28,7 @@ pub struct Config {
 #[derive(Deserialize, Clone)]
 pub struct Game {
     pub name: String,
-    pub channel_id: ChannelId,
+    pub channel_id: Option<ChannelId>,
     pub role_id: RoleId,
 }
 

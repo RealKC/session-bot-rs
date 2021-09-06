@@ -1,6 +1,10 @@
-use crate::{commands::prelude::*, context_ext::ContextExt, embed::Embed};
+use crate::{
+    commands::prelude::*,
+    context_ext::ContextExt,
+    embed::Embed,
+    interaction_handler::{CommandHandler, InteractionHandler, MessageHandler},
+};
 
-use super::interaction_handler::{CommandHandler, InteractionHandler, MessageHandler};
 use serde::Deserialize;
 use serenity::{
     async_trait,

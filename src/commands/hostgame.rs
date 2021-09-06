@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use crate::{
     context_ext::ContextExt,
+    interaction_handler::{CommandHandler, InteractionHandler, MessageHandler},
     session::{Session, UserState},
 };
 
 use super::{
-    interaction_handler::{CommandHandler, InteractionHandler, MessageHandler},
     prelude::{interaction_respond_with_private_message, update_bot_status},
     status::get_status_embed,
 };
@@ -172,7 +172,7 @@ async fn start_session(
         .await
         .games
         .iter()
-        .find(|g| g.channel_id == channel_id)
+        .find(|g| g.channel_id == Some(channel_id))
     {
         Some(g) => g,
         None => {

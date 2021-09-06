@@ -1,6 +1,6 @@
 use crate::context_ext::ContextExt;
+use crate::interaction_handler::{CommandHandler, InteractionHandler};
 
-use super::interaction_handler::{CommandHandler, InteractionHandler};
 use serenity::{
     async_trait,
     client::Context,

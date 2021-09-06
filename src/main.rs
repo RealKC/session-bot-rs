@@ -2,6 +2,7 @@ mod commands;
 mod config;
 mod context_ext;
 mod embed;
+mod interaction_handler;
 mod session;
 
 use hotwatch::Hotwatch;
@@ -19,13 +20,13 @@ use crate::{
         endhost::{self, EndHost},
         help::{Help, HelpPageHandler},
         hostgame::{self, HostGame},
-        interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
         ip::Ip,
         prelude::*,
         status::Status,
     },
     config::Config,
     context_ext::ContextExt,
+    interaction_handler::{register_guild_command, register_handler, Handler, InteractionMap},
 };
 
 struct ClientHandler;

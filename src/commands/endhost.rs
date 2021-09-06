@@ -1,10 +1,10 @@
 use crate::{
     commands::{prelude::*, status::users_with_state},
     context_ext::ContextExt,
+    interaction_handler::{CommandHandler, InteractionHandler, MessageHandler},
     session::{Session, UserState},
 };
 
-use super::interaction_handler::{CommandHandler, InteractionHandler, MessageHandler};
 use serenity::{
     async_trait,
     builder::CreateActionRow,
@@ -147,7 +147,8 @@ impl MessageHandler for ButtonYes {
 
         let message_id = ctx.session().await.read().await.message_id;
         let game = ctx.session().await.read().await.game.clone();
-        let channel_id = game.channel_id;
+        // UNWRAP SAFETY: You can not host a game which has a ChannelId set to None
+        let channel_id = game.channel_id.unwrap();
 
         if let Ok(message) = ctx
             .http

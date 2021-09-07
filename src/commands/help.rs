@@ -45,7 +45,7 @@ async fn get_action_row(ctx: &Context) -> CreateActionRow {
 
     CreateActionRow::default()
         .create_select_menu(|menu| {
-            menu.custom_id("help-pages")
+            menu.custom_id("help-dropdown")
                 .options(|options| options.set_options(option_vec))
         })
         .clone()
@@ -90,16 +90,16 @@ impl CommandHandler for Help {
 }
 
 #[derive(Clone, Copy)]
-pub struct HelpPageHandler;
+pub struct MenuHandler;
 
-impl InteractionHandler for HelpPageHandler {
+impl InteractionHandler for MenuHandler {
     fn name(&self) -> &'static str {
-        "help-pages"
+        "help-dropdown"
     }
 }
 
 #[async_trait]
-impl MessageHandler for HelpPageHandler {
+impl MessageHandler for MenuHandler {
     async fn invoke(&self, ctx: Context, interaction: MessageComponentInteraction) {
         // The conversion should always be valid unless a request is forged via modifications
         // This is due to the fact .values[0] will always be one set via HelpPage::get_option

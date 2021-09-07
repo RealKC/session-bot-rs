@@ -24,12 +24,19 @@ pub struct Config {
     pub help: Vec<HelpPage>,
     pub admins: Vec<UserId>,
     pub games: Vec<Game>,
+    pub colors: Vec<ColorRole>,
 }
 
 #[derive(Deserialize, Clone)]
 pub struct Game {
     pub name: String,
     pub channel_id: Option<ChannelId>,
+    pub role_id: RoleId,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct ColorRole {
+    pub name: String,
     pub role_id: RoleId,
 }
 

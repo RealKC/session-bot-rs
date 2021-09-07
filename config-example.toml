@@ -88,3 +88,15 @@ role_id = 776530476566315068
 [[games]]                           # You can make toggleable roles without needing to add a channel_id
 name = "another cool role"          # By not adding the field
 role_id = 883466517373669426
+
+[[colors]]                          # These are roles which change the color of the user
+name = "Red"                        # Note that only one of them can be active at a time for a user
+role_id = 884611834131398696
+
+[[colors]]
+name = "Green"
+role_id = 884615469515034694
+
+[[colors]]
+name = "Blue"
+role_id = 884615514394071041

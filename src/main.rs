@@ -18,12 +18,13 @@ use tracing::{error, info, warn};
 use crate::{
     commands::{
         allroles::AllRoles,
+        colors::{self, ColorsCommand},
         endhost::{self, EndHost},
-        help::{Help, HelpPageHandler},
+        help::{self, Help},
         hostgame::{self, HostGame},
         ip::Ip,
         prelude::*,
-        roles::{RolesCommand, RolesMenuHandler},
+        roles::{self, RolesCommand},
         status::Status,
     },
     config::Config,
@@ -79,14 +80,16 @@ impl EventHandler for ClientHandler {
         register_guild_command(&ctx, guild_id, Status).await;
         register_guild_command(&ctx, guild_id, RolesCommand).await;
         register_guild_command(&ctx, guild_id, AllRoles).await;
+        register_guild_command(&ctx, guild_id, ColorsCommand).await;
 
         register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonYes))).await;
         register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonMaybe))).await;
         register_handler(&ctx, Handler::Message(Arc::new(hostgame::ButtonNo))).await;
         register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonYes))).await;
         register_handler(&ctx, Handler::Message(Arc::new(endhost::ButtonNo))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(HelpPageHandler))).await;
-        register_handler(&ctx, Handler::Message(Arc::new(RolesMenuHandler))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(help::MenuHandler))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(roles::MenuHandler))).await;
+        register_handler(&ctx, Handler::Message(Arc::new(colors::MenuHandler))).await;
 
         update_bot_status(&ctx).await;
         info!("All commands have been added successfully!");
@@ -117,16 +120,15 @@ async fn main() {
         .watch("config.toml", move |event| {
             if let hotwatch::Event::Write(_) = event {
                 if let Some(config) = Config::read_from(Path::new("config.toml")) {
-                    info!("Config changed!");
-                    for game in &config.games {
-                        info!("{}", game.name);
-                    }
+                    info!("Config change detected");
 
                     handle.block_on(async {
                         data.write()
                             .await
                             .insert::<Config>(Arc::new(RwLock::new(config)));
                     });
+
+                    info!("Config changed successfully!");
                 }
             }
         })

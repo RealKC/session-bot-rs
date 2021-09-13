@@ -41,6 +41,7 @@ impl CommandHandler for AllRoles {
                         .await
                         .games
                         .iter()
+                        .filter(|game| game.all_roles_exception != Some(true))
                         .map(|game| game.role_id)
                         .filter(|role_id| !member.roles.contains(role_id))
                         .collect();

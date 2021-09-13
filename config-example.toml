@@ -88,6 +88,7 @@ role_id = 776530476566315068
 [[games]]                           # You can make toggleable roles without needing to add a channel_id
 name = "another cool role"          # By not adding the field
 role_id = 883466517373669426
+all_roles_exception = true          # You can also prevent it from being added with /allroles by setting the exception to true
 
 [[colors]]                          # These are roles which change the color of the user
 name = "Red"                        # Note that only one of them can be active at a time for a user

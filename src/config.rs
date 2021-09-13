@@ -32,6 +32,7 @@ pub struct Game {
     pub name: String,
     pub channel_id: Option<ChannelId>,
     pub role_id: RoleId,
+    pub all_roles_exception: Option<bool>,
 }
 
 #[derive(Deserialize, Clone)]
